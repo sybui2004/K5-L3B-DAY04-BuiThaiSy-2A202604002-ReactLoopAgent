@@ -57,8 +57,9 @@ class StatusTools:
                 return True
             text = ' '.join([i.get('name', '')] + [c.get('name', '') for c in i.get('components', [])] + [u.get('body', '') for u in i.get('incident_updates', [])])
             return query in text.casefold()
-        matches = [i for i in incidents if relevant(i)]
-        entries = [{'id': i['id'], 'name': i['name'], 'status': i['status'], 'updated_at': i['updated_at']} for i in matches[:5]]
+        # Sắp xếp theo created_at (ngày bắt đầu) giảm dần trước khi cắt, để top-N luôn là incident mới nhất.
+        matches = sorted((i for i in incidents if relevant(i)), key=lambda i: i.get('created_at', ''), reverse=True)
+        entries = [{'id': i['id'], 'name': i['name'], 'status': i['status'], 'created_at': i['created_at'], 'updated_at': i['updated_at']} for i in matches[:5]]
         return {'provider': provider, 'captured_at': data['captured_at'], 'overall': summary.get('status'),
                 'components': [{'name': c['name'], 'status': c['status']} for c in components[:5]],
                 'incidents': entries, 'matching_incidents_in_last_50': len(matches),
