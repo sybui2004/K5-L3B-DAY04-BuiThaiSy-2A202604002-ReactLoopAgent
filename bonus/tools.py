@@ -65,10 +65,10 @@ class BonusTools:
         def matches(i):
             text = ' '.join([i.get('name','')] + [c.get('name','') for c in i.get('components',[])] + [u.get('body','') for u in i.get('incident_updates',[])])
             return not query or query in text.casefold()
-        entries = [i for i in incidents if matches(i)]
+        entries = sorted((i for i in incidents if matches(i)), key=lambda i: i.get('created_at', ''), reverse=True)
         result = {'provider':provider, 'captured_at':data['captured_at'], 'overall':summary.get('status'),
                   'components':[{'name':c['name'],'status':c['status']} for c in components[:8]],
-                  'incidents':[{'id':i['id'],'name':i['name'],'status':i['status'],'updated_at':i['updated_at']} for i in entries[:8]],
+                  'incidents':[{'id':i['id'],'name':i['name'],'status':i['status'],'created_at':i.get('created_at'),'updated_at':i['updated_at']} for i in entries[:8]],
                   'match_count':len(entries), 'returned':min(8,len(entries)),
                   'note':'Chỉ tìm trong response incidents đã lấy; danh sách trả về tối đa 8 mục.', 'source':HOSTS[provider]}
         if self.scenario == 'noisy' and provider == 'vercel':
